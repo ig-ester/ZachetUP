@@ -1,0 +1,9 @@
+﻿<Page x:Class="Zachet.Views.Pages.DashboardPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Главная">
+    <Grid Margin="30">
+        <TextBlock Text="Practik" FontSize="36" FontWeight="Bold" Foreground="#2c3e50"/>
+        <TextBlock Text="Система складского учёта" FontSize="18" Margin="0,60,0,0"/>
+    </Grid>
+</Page>

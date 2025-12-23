@@ -1,0 +1,53 @@
+﻿<Page x:Class="Zachet.Views.Pages.MovementsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Перемещение товара">
+    <ScrollViewer>
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="Перемещение между ячейками" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
+
+            <StackPanel Grid.Row="1">
+                <Label Content="Исходная ячейка"/>
+                <ComboBox x:Name="FromLocationCombo" DisplayMemberPath="Code" Height="26" SelectionChanged="FromLocationChanged"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Margin="0,10">
+                <Label Content="Товар в ячейке"/>
+                <ComboBox x:Name="ProductCombo" DisplayMemberPath="Product.Name" Height="26"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Margin="0,10">
+                <Label Content="Целевая ячейка"/>
+                <ComboBox x:Name="ToLocationCombo" DisplayMemberPath="Code" Height="26"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="4" Margin="0,10">
+                <Label Content="Количество"/>
+                <TextBox x:Name="QtyBox" Text="1" Height="26"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="5" Margin="0,10">
+                <Label Content="Причина"/>
+                <TextBox x:Name="ReasonBox" Text="Оптимизация" Height="26"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="6" Margin="0,20">
+                <Button Content="Выполнить перемещение" Click="Move_Click" Width="180" Height="32"/>
+                <TextBlock x:Name="ErrorText" Foreground="Red" Margin="0,10"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="7" x:Name="InfoText" TextWrapping="Wrap" Margin="0,10"/>
+        </Grid>
+    </ScrollViewer>
+</Page>

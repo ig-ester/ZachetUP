@@ -1,0 +1,65 @@
+﻿<Page x:Class="Zachet.Views.Pages.ProductEditPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Товар">
+    <ScrollViewer>
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock x:Name="TitleText" Text="Новый товар" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
+
+            <StackPanel Grid.Row="1">
+                <Label Content="Артикул (SKU)*"/>
+                <TextBox x:Name="SkuBox" Height="26"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Margin="0,10">
+                <Label Content="Наименование*"/>
+                <TextBox x:Name="NameBox" Height="26"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Margin="0,10">
+                <Label Content="Описание"/>
+                <TextBox x:Name="DescBox" Height="60" AcceptsReturn="True" TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="4" Margin="0,10" Orientation="Horizontal" HorizontalAlignment="Left">
+                <StackPanel Margin="0,0,20,0">
+                    <Label Content="Вес (кг)*"/>
+                    <TextBox x:Name="WeightBox" Width="120" Height="26"/>
+                </StackPanel>
+                <StackPanel>
+                    <Label Content="Объём (м³)*"/>
+                    <TextBox x:Name="VolumeBox" Width="120" Height="26"/>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Row="5" Margin="0,10">
+                <Label Content="Срок годности (дней, оставить пустым — бессрочно)"/>
+                <TextBox x:Name="ShelfLifeBox" Height="26"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="6" Margin="0,10">
+                <Label Content="Условия хранения"/>
+                <TextBox x:Name="StorageBox" Height="26"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="7" Margin="0,20">
+                <Button x:Name="SaveButton" Content="Сохранить" Click="SaveButton_Click" Width="120" Height="32" HorizontalAlignment="Left"/>
+                <Button Content="Отмена" Click="CancelButton_Click" Width="100" Height="32" Margin="10,5,0,0" HorizontalAlignment="Left"/>
+            </StackPanel>
+
+            <TextBlock x:Name="ErrorText" Grid.Row="8" Foreground="Red" Margin="0,10"/>
+        </Grid>
+    </ScrollViewer>
+</Page>
