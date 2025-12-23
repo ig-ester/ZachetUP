@@ -35,6 +35,46 @@ namespace Zachet.Views.Pages
             Grid.ItemsSource = locations;
         }
 
+        private async void DeleteLocation_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn || btn.Tag is not int locId) return;
+
+            var confirm = MessageBox.Show("Удалить ячейку? Она должна быть пустой.", "Подтверждение", MessageBoxButton.YesNo);
+            if (confirm != MessageBoxResult.Yes) return;
+
+            try
+            {
+                using var db = new PractikDbContext();
+
+                if (await db.Inventories.AnyAsync(i => i.LocationId == locId))
+                {
+                    MessageBox.Show("Нельзя удалить: в ячейке есть товар.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var loc = await db.StorageLocations.FindAsync(locId);
+                if (loc == null) return;
+
+                db.StorageLocations.Remove(loc);
+                await db.SaveChangesAsync();
+
+                db.ActionLogs.Add(new ActionLog
+                {
+                    ActionType = "Delete",
+                    Entity = "StorageLocation",
+                    EntityId = locId,
+                    Comment = $"Удалена ячейка: {loc.Code}"
+                });
+                await db.SaveChangesAsync();
+
+                await LoadAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка: {ex.Message}");
+            }
+        }
+
         private void Add_Click(object sender, RoutedEventArgs e)
         {
             List<Warehouse> warehouses;

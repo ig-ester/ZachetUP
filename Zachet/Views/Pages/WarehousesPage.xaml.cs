@@ -11,55 +11,55 @@ namespace Zachet.Views.Pages
         public WarehousesPage()
         {
             InitializeComponent();
-
             Loaded += async (s, e) =>
             {
                 try
                 {
-                    await LoadAsync();
+                    await LoadWarehousesAsync();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка загрузки складов: {ex.Message}");
+                    MessageBox.Show($"Ошибка загрузки складов: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             };
         }
 
-        private async Task LoadAsync()
+        private async Task LoadWarehousesAsync()
         {
             using var db = new PractikDbContext();
-            Grid.ItemsSource = await db.Warehouses.ToListAsync();
+            var warehouses = await db.Warehouses.ToListAsync();
+            WarehousesGrid.ItemsSource = warehouses;
         }
 
-        private void Add_Click(object sender, RoutedEventArgs e)
+        private void AddWarehouse_Click(object sender, RoutedEventArgs e)
         {
             var win = new Window
             {
                 Title = "Новый склад",
                 Width = 400,
                 Height = 250,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Application.Current.MainWindow
             };
-            var sp = new StackPanel { Margin = new Thickness(20) };
 
             var nameBox = new TextBox { Height = 26, Margin = new Thickness(0, 0, 0, 10) };
             var addrBox = new TextBox { Height = 26, Margin = new Thickness(0, 0, 0, 10) };
-            var saveBtn = new Button { Content = "Сохранить", Width = 100, Height = 30 };
+            var saveBtn = new Button { Content = "Сохранить", Width = 100, Height = 30, Margin = new Thickness(0, 10, 0, 0) };
 
-            sp.Children.Add(new TextBlock { Text = "Название*" });
-            sp.Children.Add(nameBox);
-            sp.Children.Add(new TextBlock { Text = "Адрес*" });
-            sp.Children.Add(addrBox);
-            sp.Children.Add(saveBtn);
+            var layout = new StackPanel { Margin = new Thickness(20) };
+            layout.Children.Add(new TextBlock { Text = "Название*" });
+            layout.Children.Add(nameBox);
+            layout.Children.Add(new TextBlock { Text = "Адрес*" });
+            layout.Children.Add(addrBox);
+            layout.Children.Add(saveBtn);
 
-            win.Content = sp;
-            win.Owner = Application.Current.MainWindow;
+            win.Content = layout;
 
             saveBtn.Click += async (_, _) =>
             {
                 if (string.IsNullOrWhiteSpace(nameBox.Text) || string.IsNullOrWhiteSpace(addrBox.Text))
                 {
-                    MessageBox.Show("Заполните все поля.");
+                    MessageBox.Show("Заполните все поля.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
@@ -71,14 +71,67 @@ namespace Zachet.Views.Pages
                     IsActive = true
                 });
                 await db.SaveChangesAsync();
-
-                await LoadAsync();
-
+                await LoadWarehousesAsync();
                 win.Close();
-                MessageBox.Show("Склад добавлен.");
+                MessageBox.Show("Склад успешно добавлен.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             };
 
             win.ShowDialog();
+        }
+
+        private async void DeleteWarehouse_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button || button.Tag is not int warehouseId)
+                return;
+
+            var result = MessageBox.Show(
+                "Вы уверены, что хотите удалить этот склад?\nНа складе не должно быть ячеек хранения.",
+                "Подтверждение удаления",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            try
+            {
+                using var db = new PractikDbContext();
+
+                // Проверка: есть ли ячейки на складе?
+                bool hasLocations = await db.StorageLocations.AnyAsync(sl => sl.WarehouseId == warehouseId);
+                if (hasLocations)
+                {
+                    MessageBox.Show("Нельзя удалить склад: на нём есть ячейки хранения.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var warehouse = await db.Warehouses.FindAsync(warehouseId);
+                if (warehouse == null)
+                {
+                    MessageBox.Show("Склад не найден.");
+                    return;
+                }
+
+                db.Warehouses.Remove(warehouse);
+                await db.SaveChangesAsync();
+
+                // Логирование
+                db.ActionLogs.Add(new ActionLog
+                {
+                    ActionType = "Delete",
+                    Entity = "Warehouse",
+                    EntityId = warehouseId,
+                    Comment = $"Удалён склад: {warehouse.Name}"
+                });
+                await db.SaveChangesAsync();
+
+                await LoadWarehousesAsync();
+                MessageBox.Show("Склад успешно удалён.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при удалении склада: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

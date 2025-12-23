@@ -10,6 +10,7 @@
         <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
             <TextBlock Text="Места хранения" FontSize="20" FontWeight="Bold"/>
             <Button Content="Добавить" Click="Add_Click" Margin="15,0,0,0" Padding="8,4"/>
+
         </StackPanel>
         <DataGrid x:Name="Grid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="Grid_MouseDoubleClick">
             <DataGrid.Columns>
@@ -19,6 +20,14 @@
                 <DataGridTextColumn Header="Макс. вес (кг)" Binding="{Binding MaxWeightKg}" Width="120"/>
                 <DataGridTextColumn Header="Макс. объём (м³)" Binding="{Binding MaxVolumeM3}" Width="130"/>
                 <DataGridCheckBoxColumn Header="Доступна" Binding="{Binding IsAvailable}" Width="90"/>
+                <DataGridTemplateColumn Header="Действия" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Удалить" Click="DeleteLocation_Click" Tag="{Binding LocationId}"
+                    Background="LightCoral" Foreground="White" Padding="4,2"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

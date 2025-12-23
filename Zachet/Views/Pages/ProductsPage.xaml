@@ -18,6 +18,14 @@
                 <DataGridTextColumn Header="Наименование" Binding="{Binding Name}" Width="200"/>
                 <DataGridTextColumn Header="Вес (кг)" Binding="{Binding WeightKg}" Width="80"/>
                 <DataGridTextColumn Header="Объём (м³)" Binding="{Binding VolumeM3}" Width="100"/>
+                <DataGridTemplateColumn Header="Действия" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Удалить" Click="DeleteProduct_Click" Tag="{Binding ProductId}"
+                                    Background="LightCoral" Foreground="White" Padding="4,2"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

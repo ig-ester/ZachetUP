@@ -7,10 +7,35 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
         <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
             <TextBlock Text="Склады" FontSize="20" FontWeight="Bold"/>
-            <Button Content="Добавить" Click="Add_Click" Margin="15,0,0,0" Padding="8,4"/>
+            <Button Content="Добавить" Click="AddWarehouse_Click" Margin="15,0,0,0" Padding="8,4"/>
         </StackPanel>
-        <DataGrid x:Name="Grid" Grid.Row="1" AutoGenerateColumns="True" IsReadOnly="True"/>
+
+        <DataGrid x:Name="WarehousesGrid"
+                  Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding WarehouseId}" Width="50"/>
+                <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="200"/>
+                <DataGridTextColumn Header="Адрес" Binding="{Binding Address}" Width="250"/>
+                <DataGridCheckBoxColumn Header="Активен" Binding="{Binding IsActive}" Width="80"/>
+                <DataGridTemplateColumn Header="Действия" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Удалить"
+                                    Tag="{Binding WarehouseId}"
+                                    Click="DeleteWarehouse_Click"
+                                    Background="LightCoral"
+                                    Foreground="White"
+                                    Padding="4,2"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Page>
