@@ -76,25 +76,5 @@ namespace Zachet.Data
                 .HasForeignKey(ic => ic.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
-
-        public StorageLocation? FindBestLocationFor(Product product, int quantity)
-        {
-            var totalWeight = product.WeightKg * quantity;
-            var totalVolume = product.VolumeM3 * quantity;
-
-            return StorageLocations
-                .Include(sl => sl.Warehouse)
-                .Where(sl => sl.IsAvailable)
-                .Where(sl => sl.MaxWeightKg >= totalWeight)
-                .Where(sl => sl.MaxVolumeM3 >= totalVolume)
-                .Where(sl =>
-                    string.IsNullOrEmpty(product.StorageConditions) ||
-                    (product.StorageConditions.Contains("Холод") && sl.Warehouse.Name.Contains("Холод")) ||
-                    (product.StorageConditions.Contains("Температур") && sl.Warehouse.Name.Contains("Температур"))
-                )
-                .OrderBy(sl => sl.Warehouse.Name)
-                .ThenBy(sl => sl.Code)
-                .FirstOrDefault();
-        }
     }
 }

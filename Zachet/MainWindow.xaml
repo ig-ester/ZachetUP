@@ -1,46 +1,23 @@
 ﻿<Window x:Class="Zachet.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Зачет УП — Главная" Height="600" Width="900">
-    <Grid Margin="15">
+        Title="Zachet — Складской учёт" Height="700" Width="1100">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Панель кнопок навигации -->
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,15" HorizontalAlignment="Left">
-            <Button Content="Создать заказ" Width="120" Height="30" Margin="5" Click="BtnCreateOrder_Click"/>
-            <Button Content="Управление складом" Width="150" Height="30" Margin="5" Click="BtnStorage_Click"/>
-            <Button Content="Добавить товар" Width="120" Height="30" Margin="5" Click="BtnAddProduct_Click"/>
+        <StackPanel Orientation="Horizontal" Background="#f0f0f0">
+            <Button Content="Главная" Click="GoToDashboard" Margin="5" Padding="8,4"/>
+            <Button Content="Товары" Click="GoToProducts" Margin="5" Padding="8,4"/>
+            <Button Content="Склады" Click="GoToWarehouses" Margin="5" Padding="8,4"/>
+            <Button Content="Ячейки" Click="GoToLocations" Margin="5" Padding="8,4"/>
+            <Button Content="Приёмка" Click="GoToReceiving" Margin="5" Padding="8,4"/>
+            <Button Content="Перемещение" Click="GoToMovements" Margin="5" Padding="8,4"/>
+            <Button Content="Сборка" Click="GoToPicking" Margin="5" Padding="8,4"/>
         </StackPanel>
 
-        <!-- Таблица товаров с остатками и кнопкой удаления -->
-        <DataGrid x:Name="ProductsDataGrid"
-                  Grid.Row="1"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  RowHeight="35"
-                  FontSize="14">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="250"/>
-                <DataGridTextColumn Header="Остаток" Binding="{Binding Count}" Width="100"/>
-                <DataGridTextColumn Header="Цена" Binding="{Binding Price, StringFormat=C}" Width="120"/>
-                <DataGridTemplateColumn Header="Действия" Width="120">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Button Content="Удалить" 
-                                    Tag="{Binding Id}" 
-                                    Click="DeleteProduct_Click"
-                                    Background="LightCoral" 
-                                    Foreground="White"
-                                    Padding="5,2"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Frame x:Name="MainFrame" Grid.Row="1" NavigationUIVisibility="Hidden"/>
     </Grid>
 </Window>

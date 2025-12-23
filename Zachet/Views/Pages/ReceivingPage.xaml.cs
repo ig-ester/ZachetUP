@@ -1,109 +1,118 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Zachet.Data;
 using Zachet.Models;
-using Zachet.Views.Pages;
 
 namespace Zachet.Views.Pages
 {
     public partial class ReceivingPage : Page
     {
-        private List<ReceivingItem> _items = new();
-
         public ReceivingPage()
         {
             InitializeComponent();
-            LoadProducts();
+            LoadData();
         }
 
-        private async void LoadProducts()
+        private async void LoadData()
         {
             using var db = new PractikDbContext();
-            var products = await db.Products.ToListAsync();
-            _items = products.Select(p => new ReceivingItem { Product = p }).ToList();
-            ProductsGrid.ItemsSource = _items;
+            ProductCombo.ItemsSource = await db.Products.ToListAsync();
+            LocationCombo.ItemsSource = await db.StorageLocations.Include(l => l.Warehouse).ToListAsync();
         }
 
-        private void EditProduct_Click(object sender, RoutedEventArgs e)
+        private async void Receive_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.Tag is Product product)
-            {
-                NavigationService.Navigate(new ProductEditPage(product));
-            }
-        }
+            ErrorText.Text = "";
 
-        private async void AcceptReceiving_Click(object sender, RoutedEventArgs e)
-        {
-            var selected = _items.Where(i => i.IsSelected && i.Quantity > 0).ToList();
-            if (!selected.Any())
+            if (ProductCombo.SelectedItem == null || LocationCombo.SelectedItem == null)
             {
-                MessageBox.Show("Выберите хотя бы один товар с количеством > 0.");
+                ErrorText.Text = "Выберите товар и ячейку.";
                 return;
             }
 
-            using var db = new PractikDbContext();
+            var product = (Product)ProductCombo.SelectedItem;
+            var location = (StorageLocation)LocationCombo.SelectedItem;
 
-            foreach (var item in selected)
+            if (!int.TryParse(QtyBox.Text, out var qty) || qty <= 0)
             {
-                var location = db.FindBestLocationFor(item.Product, item.Quantity);
-                if (location == null)
-                {
-                    MessageBox.Show($"Не найдено подходящей ячейки для товара: {item.Product.Name}");
-                    return;
-                }
-
-                var existing = await db.Inventories
-                    .FirstOrDefaultAsync(inv => inv.ProductId == item.Product.ProductId && inv.LocationId == location.LocationId);
-
-                if (existing != null)
-                {
-                    existing.Quantity += item.Quantity;
-                }
-                else
-                {
-                    db.Inventories.Add(new Inventory
-                    {
-                        ProductId = item.Product.ProductId,
-                        LocationId = location.LocationId,
-                        Quantity = item.Quantity,
-                        Reserved = 0,
-                        ExpiryDate = item.Product.ShelfLifeDays.HasValue
-                            ? DateTime.UtcNow.AddDays(item.Product.ShelfLifeDays.Value)
-                            : (DateTime?)null,
-                        BatchNumber = $"BATCH-{DateTime.UtcNow:yyyyMMddHHmmss}"
-                    });
-                }
-
-                db.Movements.Add(new Movement
-                {
-                    ProductId = item.Product.ProductId,
-                    FromLocationId = null,
-                    ToLocationId = location.LocationId,
-                    Quantity = item.Quantity,
-                    PerformedBy = Environment.UserName,
-                    Reason = "Приход"
-                });
-
-                db.ActionLogs.Add(new ActionLog
-                {
-                    ActionType = "Receiving",
-                    Entity = "Inventory",
-                    EntityId = existing?.InventoryId ?? -1,
-                    ProductId = item.Product.ProductId,
-                    ToLocationId = location.LocationId,
-                    Quantity = item.Quantity,
-                    Comment = $"Приход товара {item.Product.Name}, кол-во: {item.Quantity}"
-                });
+                ErrorText.Text = "Некорректное количество.";
+                return;
             }
 
-            await db.SaveChangesAsync();
-            MessageBox.Show("Приёмка успешно завершена.");
-            NavigationService.GoBack();
-        }
+            DateTime? expiry = null;
+            if (!string.IsNullOrWhiteSpace(ExpiryBox.Text))
+            {
+                if (!DateTime.TryParseExact(ExpiryBox.Text, "dd.MM.yyyy", null, DateTimeStyles.None, out var d))
+                {
+                    ErrorText.Text = "Неверный формат срока годности. Используйте дд.мм.гггг";
+                    return;
+                }
+                expiry = d;
+            }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
+            using var db = new PractikDbContext();
+
+            var currentWeight = (await db.Inventories
+                .Where(i => i.LocationId == location.LocationId)
+                .SumAsync(i => (long?)i.Quantity * (long?)i.Product.WeightKg)) ?? 0m;
+            var currentVolume = (await db.Inventories
+                .Where(i => i.LocationId == location.LocationId)
+                .SumAsync(i => (long?)i.Quantity * (long?)i.Product.VolumeM3)) ?? 0m;
+
+            var newWeight = currentWeight + qty * product.WeightKg;
+            var newVolume = currentVolume + qty * product.VolumeM3;
+
+            if (newWeight > location.MaxWeightKg || newVolume > location.MaxVolumeM3)
+            {
+                ErrorText.Text = "Превышена грузоподъёмность или объём ячейки.";
+                return;
+            }
+
+            var inv = await db.Inventories
+                .FirstOrDefaultAsync(i => i.ProductId == product.ProductId && i.LocationId == location.LocationId && i.BatchNumber == BatchBox.Text && i.ExpiryDate == expiry);
+
+            if (inv == null)
+            {
+                inv = new Inventory
+                {
+                    ProductId = product.ProductId,
+                    LocationId = location.LocationId,
+                    Quantity = 0,
+                    Reserved = 0,
+                    BatchNumber = string.IsNullOrWhiteSpace(BatchBox.Text) ? null : BatchBox.Text,
+                    ExpiryDate = expiry
+                };
+                db.Inventories.Add(inv);
+            }
+
+            inv.Quantity += qty;
+            await db.SaveChangesAsync();
+
+            db.Movements.Add(new Movement
+            {
+                ProductId = product.ProductId,
+                FromLocationId = null,
+                ToLocationId = location.LocationId,
+                Quantity = qty,
+                Reason = "Приход"
+            });
+
+            db.ActionLogs.Add(new ActionLog
+            {
+                ActionType = "Receiving",
+                Entity = "Inventory",
+                EntityId = inv.InventoryId,
+                ProductId = product.ProductId,
+                ToLocationId = location.LocationId,
+                Quantity = qty,
+                Comment = $"Принято {qty} ед. товара {product.Name} в ячейку {location.Code}"
+            });
+
+            await db.SaveChangesAsync();
+            MessageBox.Show("Товар успешно принят!");
             NavigationService.GoBack();
         }
     }
