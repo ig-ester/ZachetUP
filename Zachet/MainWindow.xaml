@@ -12,10 +12,8 @@
             <Button Content="Главная" Click="GoToDashboard" Margin="5" Padding="8,4"/>
             <Button Content="Товары" Click="GoToProducts" Margin="5" Padding="8,4"/>
             <Button Content="Склады" Click="GoToWarehouses" Margin="5" Padding="8,4"/>
-            <Button Content="Ячейки" Click="GoToLocations" Margin="5" Padding="8,4"/>
+            <Button Content="Места хранения" Click="GoToStorageLocations" Margin="5" Padding="8,4"/>
             <Button Content="Приёмка" Click="GoToReceiving" Margin="5" Padding="8,4"/>
-            <Button Content="Перемещение" Click="GoToMovements" Margin="5" Padding="8,4"/>
-            <Button Content="Сборка" Click="GoToPicking" Margin="5" Padding="8,4"/>
         </StackPanel>
 
         <Frame x:Name="MainFrame" Grid.Row="1" NavigationUIVisibility="Hidden"/>
